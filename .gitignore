@@ -1,0 +1,6 @@
+coffeebi/backend/venv/
+coffeebi/backend/__pycache__/
+coffeebi/backend/.env
+coffeebi/frontend/node_modules/
+coffeebi/frontend/dist/
+coffeebi/frontend/.env.local
