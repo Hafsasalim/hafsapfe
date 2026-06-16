@@ -1,5 +1,5 @@
 # CoffeeBI — Dashboard BI avec Prédiction des Ventes
-## Groupe PT47 — ISMONTIC Tanger — PFE 2025
+## Groupe PT47 — High tech — PFE 2025
 ### Abdelhadi Sahba (Backend FastAPI) · Hafsa Salim (Frontend React)
 
 ---
