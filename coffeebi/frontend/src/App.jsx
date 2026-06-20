@@ -15,7 +15,7 @@ import Rapports from './pages/Rapports';
 export default function App() {
   return (
     <AuthProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <Toaster position="top-right" toastOptions={{
           style: { background:'#1a1410', color:'#f5e6d0', border:'1px solid #3d2d1e', borderRadius:'10px' }
         }}/>

@@ -10,9 +10,8 @@ export function useFetch(fn, deps=[]) {
     setLoading(true); setError(null);
     try { setData(await fn()); }
     catch(e) { setError(e.message); }
-    finally { setLoading(false); }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+    finally { setLoading(false); }}, deps);
+      // beslint-disable-next-line react-hooks/exhaustive-deps
 
   useEffect(()=>{ load(); },[load]);
   return { data, loading, error, refetch: load };

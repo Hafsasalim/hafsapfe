@@ -1,5 +1,5 @@
 """Route authentification — POST /api/auth/login"""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from database import get_db
 from models.models import User
@@ -30,6 +30,17 @@ def login(body: LoginRequest, db: Session = Depends(get_db)):
         "token_type":   "bearer",
         "user": {"id": user.user_id, "name": user.name, "email": user.email, "role": user.role}
     }
+
+
+@router.options("/login")
+def login_options():
+    headers = {
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+        "Access-Control-Allow-Headers": "Authorization,Content-Type",
+        "Access-Control-Max-Age": "600",
+    }
+    return Response(status_code=200, headers=headers)
 
 @router.get("/me")
 def me(current_user: User = Depends(get_current_user)):

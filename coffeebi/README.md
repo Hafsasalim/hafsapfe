@@ -140,7 +140,12 @@ coffee_sales ──JOIN──> client        (client_id → id_client)
 ml_predictions ──JOIN──> cafe        (coffee_id → id_cafe)
 reports ──JOIN──> users              (generated_by → user_id)
 ```
+C:\Users\Administrateur\Desktop\pfee\hafsapfe\coffeebi\backend\venv311\Scripts\python.exe -m uvicorn main:app --reload --port 8000 --app-dir C:\Users\Administrateur\Desktop\pfee\hafsapfe\coffeebi\backend
 
+mmm
+cd C:\Users\Administrateur\Desktop\pfee\hafsapfe\coffeebi\backend
+.\venv311\Scripts\Activate.ps1
+uvicorn main:app --reload --port 8000
 ---
 
 *Groupe PT47 — Dashboard BI Coffee Shop — ISMONTIC Tanger — PFE 2025*
