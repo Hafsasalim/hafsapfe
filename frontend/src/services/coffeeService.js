@@ -74,10 +74,14 @@ export const coffeeService = {
     try { const {data}=await api.get(`/dashboard/top-products?limit=${limit}`); return data; }
     catch { await delay(); return MOCK_PRODUCTS; }
   },
-  async getSales(page=1,filters={}) {
+  async getSales(page=1, filters={}) {
     try {
-      const params=new URLSearchParams({page,...filters}).toString();
-      const {data}=await api.get(`/sales/?${params}`); return data;
+      const clean = Object.fromEntries(
+        Object.entries(filters).filter(([, v]) => v !== '' && v !== null && v !== undefined)
+      );
+      const params = new URLSearchParams({ page, ...clean }).toString();
+      const { data } = await api.get(`/sales/?${params}`);
+      return data;
     } catch { await delay(); return MOCK_SALES; }
   },
   async predict(payload) {

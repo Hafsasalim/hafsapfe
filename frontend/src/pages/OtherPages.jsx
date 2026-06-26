@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { coffeeService } from '../services/coffeeService';
 import { useFetch } from '../hooks/useData';
 import { fmt, fmtN, CAT_COLORS } from '../utils/helpers';
@@ -7,18 +7,102 @@ const card = { background:'var(--surface)', border:'1px solid var(--border)', bo
 const TH = { textAlign:'left', padding:'8px 12px', fontSize:10, fontWeight:600, color:'var(--text3)', textTransform:'uppercase', letterSpacing:.5, borderBottom:'1px solid var(--border)' };
 const TD = { padding:'10px 12px', borderBottom:'1px solid rgba(61,45,30,0.3)', color:'var(--text2)', fontSize:12 };
 
+const EMPTY_FILTERS = {
+  sale_id:'', date_from:'', date_to:'',
+  hour_from:'', hour_to:'', coffee_name:'',
+  category:'', payment:'', amount_min:'', amount_max:'', time_of_day:'',
+};
+
+const inpF = (active) => ({
+  width:'100%', background:'var(--surface)', color:'var(--text)', fontSize:11,
+  border:`1px solid ${active ? 'var(--coffee)' : 'var(--border)'}`,
+  borderRadius:4, padding:'3px 7px', outline:'none', boxSizing:'border-box',
+});
+const selF = (active) => ({...inpF(active), cursor:'pointer', appearance:'auto'});
+
 export function Ventes() {
-  const [page, setPage] = useState(1);
-  const sales = useFetch(() => coffeeService.getSales(page), [page]);
+  const [page, setPage]       = useState(1);
+  const [filters, setFilters] = useState(EMPTY_FILTERS);
+  const [applied, setApplied] = useState(EMPTY_FILTERS);   // debounced
+  const [sort, setSort]       = useState({ by:'date', dir:'desc' });
+
+  // Debounce text/number inputs 400ms
+  useEffect(() => {
+    const t = setTimeout(() => setApplied({ ...filters }), 400);
+    return () => clearTimeout(t);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [filters.sale_id, filters.date_from, filters.date_to,
+      filters.hour_from, filters.hour_to, filters.coffee_name,
+      filters.amount_min, filters.amount_max]);
+
+  // Selects apply immediately (no debounce needed)
+  const setImmediate = (key, val) => {
+    setFilters(p => ({ ...p, [key]: val }));
+    setApplied(p => ({ ...p, [key]: val }));
+    setPage(1);
+  };
+  const setF = (key, val) => { setFilters(p => ({ ...p, [key]: val })); setPage(1); };
+
+  const resetFilters = () => {
+    setFilters(EMPTY_FILTERS);
+    setApplied(EMPTY_FILTERS);
+    setPage(1);
+  };
+
+  const toggleSort = (col) => {
+    setSort(prev => prev.by === col
+      ? { by: col, dir: prev.dir === 'asc' ? 'desc' : 'asc' }
+      : { by: col, dir: 'asc' }
+    );
+    setPage(1);
+  };
+
+  const apiKey = JSON.stringify(applied) + sort.by + sort.dir;
+  const buildParams = () => ({
+    ...Object.fromEntries(Object.entries(applied).filter(([,v]) => v !== '')),
+    sort_by: sort.by, sort_dir: sort.dir,
+  });
+
+  const sales = useFetch(() => coffeeService.getSales(page, buildParams()), [page, apiKey]);
   const data  = sales.data;
+
+  const hasFilters = Object.values(filters).some(v => v !== '');
+
+  const SortBtn = ({ col }) => {
+    const active = sort.by === col;
+    return (
+      <span style={{ marginLeft:5, fontSize:11, color: active ? 'var(--coffee)' : 'var(--border)',
+                     fontWeight: active ? 700 : 400, display:'inline-block', lineHeight:1 }}>
+        {active ? (sort.dir === 'asc' ? '↑' : '↓') : '↕'}
+      </span>
+    );
+  };
+
+  // Header cell: sortable
+  const thClick = (col) => ({
+    ...TH,
+    cursor:'pointer', userSelect:'none', whiteSpace:'nowrap',
+    padding:'9px 10px', verticalAlign:'bottom',
+    color: sort.by === col ? 'var(--coffee)' : 'var(--text3)',
+    borderBottom: sort.by === col ? '2px solid var(--coffee)' : '1px solid var(--border)',
+  });
+
+  // Filter row cell
+  const TF = {
+    padding:'5px 8px',
+    background:'var(--surface2)',
+    borderBottom:'2px solid var(--border)',
+    verticalAlign:'top',
+  };
 
   return (
     <div className="fade-in">
-      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:20 }}>
+      {/* KPI cards */}
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(3,1fr)', gap:12, marginBottom:16 }}>
         {[
-          {label:'Total transactions', value: fmtN(data?.total), color:'var(--coffee)'},
-          {label:'Page actuelle',      value: `${data?.page||1} / ${data?.pages||1}`, color:'var(--green)'},
-          {label:'Résultats par page', value: '10',             color:'var(--purple)'},
+          { label:'Total transactions', value: fmtN(data?.total),                       color:'var(--coffee)' },
+          { label:'Page',               value: `${data?.page||1} / ${data?.pages||1}`,   color:'var(--green)' },
+          { label:'Résultats / page',   value: '10',                                     color:'var(--purple)' },
         ].map(k => (
           <div key={k.label} style={card}>
             <div style={{fontSize:10,color:'var(--text3)',marginBottom:4}}>{k.label}</div>
@@ -28,38 +112,213 @@ export function Ventes() {
       </div>
 
       <div style={card}>
-        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:16}}>
-          <div style={{fontSize:14,fontWeight:600}}>Transactions — coffee_sales × cafe × payment_mode</div>
-          <div style={{display:'flex',gap:8}}>
-            <button onClick={()=>setPage(p=>Math.max(1,p-1))} disabled={page===1}
-              style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 12px',color:'var(--text2)',fontSize:12}}>← Préc</button>
-            <span style={{padding:'4px 12px',fontSize:12,color:'var(--text2)'}}>Page {page}</span>
-            <button onClick={()=>setPage(p=>p+1)} disabled={page>=(data?.pages||1)}
-              style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,padding:'4px 12px',color:'var(--text2)',fontSize:12}}>Suiv →</button>
+        {/* Toolbar */}
+        <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',marginBottom:12,flexWrap:'wrap',gap:8}}>
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:14,fontWeight:600}}>Analyse des Ventes</span>
+            {hasFilters && (
+              <span style={{fontSize:10,background:'rgba(200,145,58,.15)',color:'var(--coffee)',
+                            borderRadius:20,padding:'2px 9px',fontWeight:600}}>
+                Filtres actifs
+              </span>
+            )}
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center',flexWrap:'wrap'}}>
+            {hasFilters && (
+              <button onClick={resetFilters}
+                style={{background:'rgba(239,68,68,.08)',border:'1px solid rgba(239,68,68,.3)',
+                        borderRadius:6,padding:'4px 10px',color:'#ef4444',fontSize:11,
+                        fontWeight:600,cursor:'pointer'}}>
+                ✕ Réinitialiser
+              </button>
+            )}
+            <button onClick={() => setPage(p => Math.max(1, p-1))} disabled={page===1}
+              style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,
+                      padding:'4px 12px',color:'var(--text2)',fontSize:12,cursor:'pointer'}}>
+              ← Préc
+            </button>
+            <span style={{padding:'4px 8px',fontSize:12,color:'var(--text2)'}}>
+              Page {page} / {data?.pages||1}
+            </span>
+            <button onClick={() => setPage(p => p+1)} disabled={page >= (data?.pages||1)}
+              style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:6,
+                      padding:'4px 12px',color:'var(--text2)',fontSize:12,cursor:'pointer'}}>
+              Suiv →
+            </button>
           </div>
         </div>
+
         <div style={{overflowX:'auto'}}>
-          <table style={{width:'100%',borderCollapse:'collapse'}}>
-            <thead><tr>
-              <th style={TH}>ID</th><th style={TH}>Date</th><th style={TH}>Heure</th>
-              <th style={TH}>Café</th><th style={TH}>Catégorie</th><th style={TH}>Paiement</th>
-              <th style={TH}>Montant</th><th style={TH}>Moment</th>
-            </tr></thead>
+          <table style={{width:'100%',borderCollapse:'collapse',minWidth:820}}>
+            <thead>
+              {/* ── Ligne d'en-têtes triables ── */}
+              <tr>
+                <th style={thClick('id')}      onClick={()=>toggleSort('id')}>
+                  ID <SortBtn col="id"/>
+                </th>
+                <th style={thClick('date')}    onClick={()=>toggleSort('date')}>
+                  Date <SortBtn col="date"/>
+                </th>
+                <th style={thClick('hour')}    onClick={()=>toggleSort('hour')}>
+                  Heure <SortBtn col="hour"/>
+                </th>
+                <th style={thClick('coffee')}  onClick={()=>toggleSort('coffee')}>
+                  Café <SortBtn col="coffee"/>
+                </th>
+                <th style={thClick('category')}onClick={()=>toggleSort('category')}>
+                  Catégorie <SortBtn col="category"/>
+                </th>
+                <th style={thClick('payment')} onClick={()=>toggleSort('payment')}>
+                  Paiement <SortBtn col="payment"/>
+                </th>
+                <th style={thClick('amount')}  onClick={()=>toggleSort('amount')}>
+                  Montant <SortBtn col="amount"/>
+                </th>
+                <th style={thClick('moment')}  onClick={()=>toggleSort('moment')}>
+                  Moment <SortBtn col="moment"/>
+                </th>
+              </tr>
+
+              {/* ── Ligne de filtres ── */}
+              <tr>
+                {/* ID */}
+                <td style={TF}>
+                  <input type="number" min={1} placeholder="ID…"
+                    value={filters.sale_id}
+                    onChange={e => setF('sale_id', e.target.value)}
+                    style={inpF(!!filters.sale_id)}/>
+                </td>
+
+                {/* Date : de → à */}
+                <td style={TF}>
+                  <input type="date" value={filters.date_from}
+                    onChange={e => setImmediate('date_from', e.target.value)}
+                    style={{...inpF(!!filters.date_from), marginBottom:3}}
+                    title="Date de début"/>
+                  <input type="date" value={filters.date_to}
+                    onChange={e => setImmediate('date_to', e.target.value)}
+                    style={inpF(!!filters.date_to)}
+                    title="Date de fin"/>
+                </td>
+
+                {/* Heure : de → à */}
+                <td style={TF}>
+                  <div style={{display:'flex',gap:3}}>
+                    <input type="number" min={0} max={23} placeholder="De"
+                      value={filters.hour_from}
+                      onChange={e => setF('hour_from', e.target.value)}
+                      style={{...inpF(filters.hour_from !== ''), width:'50%'}}/>
+                    <input type="number" min={0} max={23} placeholder="À"
+                      value={filters.hour_to}
+                      onChange={e => setF('hour_to', e.target.value)}
+                      style={{...inpF(filters.hour_to !== ''), width:'50%'}}/>
+                  </div>
+                </td>
+
+                {/* Café : recherche texte */}
+                <td style={TF}>
+                  <input type="text" placeholder="Recherche…"
+                    value={filters.coffee_name}
+                    onChange={e => setF('coffee_name', e.target.value)}
+                    style={inpF(!!filters.coffee_name)}/>
+                </td>
+
+                {/* Catégorie : select */}
+                <td style={TF}>
+                  <select value={filters.category}
+                    onChange={e => setImmediate('category', e.target.value)}
+                    style={selF(!!filters.category)}>
+                    <option value="">Toutes</option>
+                    <option value="Classique">Classique</option>
+                    <option value="Lait">Lait</option>
+                    <option value="Chocolat">Chocolat</option>
+                    <option value="Strong">Strong</option>
+                  </select>
+                </td>
+
+                {/* Paiement : select */}
+                <td style={TF}>
+                  <select value={filters.payment}
+                    onChange={e => setImmediate('payment', e.target.value)}
+                    style={selF(!!filters.payment)}>
+                    <option value="">Tous</option>
+                    <option value="cash">Cash</option>
+                    <option value="card">Carte</option>
+                  </select>
+                </td>
+
+                {/* Montant : min → max */}
+                <td style={TF}>
+                  <input type="number" min={0} placeholder="Min"
+                    value={filters.amount_min}
+                    onChange={e => setF('amount_min', e.target.value)}
+                    style={{...inpF(filters.amount_min !== ''), marginBottom:3}}/>
+                  <input type="number" min={0} placeholder="Max"
+                    value={filters.amount_max}
+                    onChange={e => setF('amount_max', e.target.value)}
+                    style={inpF(filters.amount_max !== '')}/>
+                </td>
+
+                {/* Moment : select */}
+                <td style={TF}>
+                  <select value={filters.time_of_day}
+                    onChange={e => setImmediate('time_of_day', e.target.value)}
+                    style={selF(!!filters.time_of_day)}>
+                    <option value="">Tous</option>
+                    <option value="Morning">Matin</option>
+                    <option value="Afternoon">Après-midi</option>
+                    <option value="Evening">Soir</option>
+                    <option value="Night">Nuit</option>
+                  </select>
+                </td>
+              </tr>
+            </thead>
+
             <tbody>
               {sales.loading
-                ? Array.from({length:5}).map((_,i)=><tr key={i}>{Array.from({length:8}).map((__,j)=><td key={j} style={TD}><div className="skeleton" style={{height:14,borderRadius:4}}/></td>)}</tr>)
-                : data?.data?.map(s => (
-                  <tr key={s.sale_id} style={{cursor:'default'}} onMouseEnter={e=>{[...e.currentTarget.cells].forEach(c=>c.style.background='var(--surface2)')}} onMouseLeave={e=>{[...e.currentTarget.cells].forEach(c=>c.style.background='')}}>
-                    <td style={{...TD,color:'var(--coffee)',fontWeight:600}}>#{s.sale_id}</td>
-                    <td style={TD}>{s.date}</td>
-                    <td style={TD}>{s.hour}h</td>
-                    <td style={{...TD,fontWeight:500,color:'var(--text)'}}>{s.coffee}</td>
-                    <td style={TD}><span style={{background:(CAT_COLORS[s.category]||'#888')+'22',color:CAT_COLORS[s.category]||'#888',borderRadius:20,padding:'2px 8px',fontSize:10}}>{s.category}</span></td>
-                    <td style={TD}><span style={{background:s.payment==='cash'?'rgba(16,185,129,.15)':'rgba(139,92,246,.15)',color:s.payment==='cash'?'var(--green)':'var(--purple)',borderRadius:20,padding:'2px 8px',fontSize:10}}>{s.payment}</span></td>
-                    <td style={{...TD,fontWeight:600,color:'var(--coffee)'}}>{fmt(s.amount)}</td>
-                    <td style={TD}>{s.time_of_day}</td>
-                  </tr>
-                ))
+                ? Array.from({length:6}).map((_,i) => (
+                    <tr key={i}>
+                      {Array.from({length:8}).map((__,j) => (
+                        <td key={j} style={TD}>
+                          <div className="skeleton" style={{height:14,borderRadius:4}}/>
+                        </td>
+                      ))}
+                    </tr>
+                  ))
+                : data?.data?.length === 0
+                  ? (
+                    <tr>
+                      <td colSpan={8} style={{...TD, textAlign:'center', padding:'32px', color:'var(--text3)'}}>
+                        Aucun résultat pour les filtres sélectionnés.
+                      </td>
+                    </tr>
+                  )
+                  : data?.data?.map(s => (
+                    <tr key={s.sale_id}
+                      onMouseEnter={e => [...e.currentTarget.cells].forEach(c => c.style.background='var(--surface2)')}
+                      onMouseLeave={e => [...e.currentTarget.cells].forEach(c => c.style.background='')}>
+                      <td style={{...TD,color:'var(--coffee)',fontWeight:600}}>#{s.sale_id}</td>
+                      <td style={TD}>{s.date}</td>
+                      <td style={TD}>{s.hour}h</td>
+                      <td style={{...TD,fontWeight:500,color:'var(--text)'}}>{s.coffee}</td>
+                      <td style={TD}>
+                        <span style={{background:(CAT_COLORS[s.category]||'#888')+'22',
+                                      color:CAT_COLORS[s.category]||'#888',
+                                      borderRadius:20,padding:'2px 8px',fontSize:10}}>
+                          {s.category}
+                        </span>
+                      </td>
+                      <td style={TD}>
+                        <span style={{background:s.payment==='cash'?'rgba(16,185,129,.15)':'rgba(139,92,246,.15)',
+                                      color:s.payment==='cash'?'var(--green)':'var(--purple)',
+                                      borderRadius:20,padding:'2px 8px',fontSize:10}}>
+                          {s.payment}
+                        </span>
+                      </td>
+                      <td style={{...TD,fontWeight:600,color:'var(--coffee)'}}>{fmt(s.amount)}</td>
+                      <td style={TD}>{s.time_of_day}</td>
+                    </tr>
+                  ))
               }
             </tbody>
           </table>
