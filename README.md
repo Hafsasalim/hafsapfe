@@ -1,4 +1,4 @@
-# CoffeaI — Dashboard  avec Prédiction des Ventes
+# CoffeeAI — Dashboard  avec Prédiction des Ventes
 
 ## Groupe PT47 — High tech — PFE 2026
 
