@@ -20,7 +20,7 @@ router = APIRouter()
 
 def _apply_period_filter(q, period: str):
     """Filter a CoffeeSale-based query by period string.
-    Formats: "January", "S1 2025", "S2 2025", "2025"
+    Formats: "1" (month number), "S1 2025", "S2 2025", "2025"
     """
     p = period.strip()
     parts = p.split()
@@ -36,7 +36,7 @@ def _apply_period_filter(q, period: str):
     else:
         month = parts[0]
         year = int(parts[1]) if len(parts) > 1 else None
-        q = q.filter(CoffeeSale.month_name == month)
+        q = q.filter(CoffeeSale.month_sort == int(month))
         if year:
             q = q.filter(func.year(CoffeeSale.saleDate) == year)
     return q
