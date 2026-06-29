@@ -388,8 +388,8 @@ export function Clients() {
   );
 }
 
-const MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-const MONTHS_FR = {January:'Janvier',February:'Février',March:'Mars',April:'Avril',May:'Mai',June:'Juin',July:'Juillet',August:'Août',September:'Septembre',October:'Octobre',November:'Novembre',December:'Décembre'};
+const MONTHS = [1,2,3,4,5,6,7,8,9,10,11,12];
+const MONTHS_FR = {1:'Janvier',2:'Février',3:'Mars',4:'Avril',5:'Mai',6:'Juin',7:'Juillet',8:'Août',9:'Septembre',10:'Octobre',11:'Novembre',12:'Décembre'};
 const YEARS = ['2023','2024','2025','2026'];
 
 const sel = {width:'100%',background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'var(--radius-sm)',padding:'9px 12px',color:'var(--text)',fontSize:13};
@@ -399,11 +399,27 @@ export function Rapports() {
 
   // ── Génération ────────────────────────────────────────────────
   const [periodType, setPeriodType] = useState('month');
-  const [selMonth, setSelMonth]     = useState('January');
+  const [selMonth, setSelMonth]     = useState(1);
   const [selSem, setSelSem]         = useState('S1');
   const [selYear, setSelYear]       = useState('2025');
   const [notes, setNotes]           = useState('');
   const [genLoading, setGenLoading] = useState(false);
+
+  const formatPeriodLabel = (period) => {
+    const text = String(period ?? '').trim();
+    if (!text) return '';
+
+    const parts = text.split(/\s+/);
+    if (parts.length >= 2) {
+      const monthNumber = Number(parts[0]);
+      if (!Number.isNaN(monthNumber) && monthNumber >= 1 && monthNumber <= 12) {
+        const monthName = MONTHS_FR[monthNumber];
+        return `${(monthName || parts[0]).toLowerCase()} ${parts.slice(1).join(' ')}`.trim();
+      }
+    }
+
+    return text;
+  };
 
   // ── Sélection pour export ─────────────────────────────────────
   const [selectedIds, setSelectedIds]   = useState(new Set());
@@ -412,7 +428,13 @@ export function Rapports() {
   const getPeriodStr = () => {
     if (periodType === 'semester') return `${selSem} ${selYear}`;
     if (periodType === 'year')     return selYear;
-    return selMonth;
+    return `${selMonth} ${selYear}`;
+  };
+
+  const getDisplayPeriodStr = () => {
+    if (periodType === 'semester') return `${selSem} ${selYear}`;
+    if (periodType === 'year') return selYear;
+    return formatPeriodLabel(`${selMonth} ${selYear}`);
   };
 
   const handleGenerate = async () => {
@@ -431,7 +453,7 @@ export function Rapports() {
   const buildRichCSV = (data, report) => {
     const q = v => `"${String(v ?? '').replace(/"/g, "'")}"`;
     const lines = [
-      `Rapport CoffeeBI,${q(data.period)}`,
+      `Rapport CoffeeBI,${q(formatPeriodLabel(data.period))}`,
       `Généré le,${q((report.created_at || data.created_at || '').slice(0, 16))}`,
       `Notes,${q(report.notes || data.notes || '')}`,
       '',
@@ -476,7 +498,7 @@ export function Rapports() {
       const url = URL.createObjectURL(blob);
       const a   = document.createElement('a');
       a.href     = url;
-      a.download = `rapport_${(report.period||'').replace(/\s+/g,'_')}_coffeebi.${ext}`;
+      a.download = `rapport_${(formatPeriodLabel(report.period)||'').replace(/\s+/g,'_')}_coffeebi.${ext}`;
       a.click();
       URL.revokeObjectURL(url);
     } finally {
@@ -536,7 +558,7 @@ export function Rapports() {
                         style={{width:15,height:15,accentColor:'var(--coffee)',cursor:'pointer',flexShrink:0}}/>
                       <span style={{fontSize:22,flexShrink:0}}>📊</span>
                       <div style={{flex:1,minWidth:0}}>
-                        <div style={{fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Rapport {r.period}</div>
+                        <div style={{fontSize:13,fontWeight:500,whiteSpace:'nowrap',overflow:'hidden',textOverflow:'ellipsis'}}>Rapport {formatPeriodLabel(r.period)}</div>
                         <div style={{fontSize:11,color:'var(--text3)'}}>{r.created_at?.slice(0,16)}</div>
                       </div>
                       <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:4}}>
@@ -571,11 +593,19 @@ export function Rapports() {
 
           {/* Sélecteurs dynamiques */}
           {periodType === 'month' && (
-            <div style={{marginBottom:14}}>
-              <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:6}}>Mois</label>
-              <select value={selMonth} onChange={e=>setSelMonth(e.target.value)} style={sel}>
-                {MONTHS.map(m=><option key={m} value={m}>{MONTHS_FR[m]}</option>)}
-              </select>
+            <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10,marginBottom:14}}>
+              <div>
+                <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:6}}>Mois</label>
+                <select value={selMonth} onChange={e=>setSelMonth(e.target.value)} style={sel}>
+                  {MONTHS.map(m=><option key={m} value={m}>{MONTHS_FR[m]}</option>)}
+                </select>
+              </div>
+              <div>
+                <label style={{fontSize:12,color:'var(--text2)',display:'block',marginBottom:6}}>Année</label>
+                <select value={selYear} onChange={e=>setSelYear(e.target.value)} style={sel}>
+                  {YEARS.map(y=><option key={y}>{y}</option>)}
+                </select>
+              </div>
             </div>
           )}
 
@@ -608,7 +638,7 @@ export function Rapports() {
 
           {/* Aperçu de la période */}
           <div style={{background:'var(--surface2)',border:'1px solid var(--border)',borderRadius:'var(--radius-sm)',padding:'8px 12px',marginBottom:14,fontSize:12,color:'var(--text2)'}}>
-            Période sélectionnée : <strong style={{color:'var(--coffee)'}}>{getPeriodStr()}</strong>
+            Période sélectionnée : <strong style={{color:'var(--coffee)'}}>{getDisplayPeriodStr()}</strong>
           </div>
 
           <div style={{marginBottom:14}}>

@@ -1,4 +1,4 @@
-# CoffeeBI — Dashboard BI avec Prédiction des Ventes
+# CoffeaI — Dashboard  avec Prédiction des Ventes
 
 ## Groupe PT47 — High tech — PFE 2026
 
@@ -11,7 +11,7 @@
 
 | Backend | **FastAPI** (Python 3), SQLAlchemy ORM, Pydantic v2, JWT (python-jose) |
 
-| Base de données | **MySQL 8** — base `coffee_bi` existante |
+| Base de données | **MySQL 8** — base `coffee_ai` existante |
 
 | ML | Flask + scikit-learn (Random Forest) — service séparé port 5001 |
 
@@ -27,7 +27,7 @@
 
 ```
 
-coffeebi/
+coffeeai/
 
 ├── backend/                        
 
@@ -95,7 +95,7 @@ coffeebi/
 
     │   └── pages/
 
-    │       ├── Login.jsx           # Connexion (admin@coffeebi.com / admin123)
+    │       ├── Login.jsx           # Connexion (admin@coffeeai.com / admin123)
 
     │       ├── Dashboard.jsx       # 4 KPIs + 4 graphiques Chart.js
 
@@ -129,7 +129,7 @@ coffeebi/
 
 - Node.js 18+
 
-- MySQL 8 avec la base `coffee_bi` importée
+- MySQL 8 avec la base `coffee_ai` importée
 
 
 
@@ -189,7 +189,7 @@ npm start
 
 
 
-## Comptes de connexion (depuis coffee_bi.users)
+## Comptes de connexion (depuis coffee_ai.users)
 
 
 
@@ -197,9 +197,9 @@ npm start
 
 |-------|-------------|------|
 
-| admin@coffeebi.ma | coffee2024 | admin |
+| admin@coffeeai.ma | coffee2024 | admin |
 
-| manager@coffeebi.com | manager123 | manager |
+| manager@coffeeai.com | manager123 | manager |
 
 
 
@@ -241,7 +241,7 @@ npm start
 
 | GET | `/api/products/` | Catalogue cafés |
 
-| GET | `/api/reports/` | Rapports BI |
+| GET | `/api/reports/` | Rapports  |
 
 | POST | `/api/reports/generate` | Générer un rapport |
 
@@ -281,5 +281,5 @@ reports ──JOIN──> users              (generated_by → user_id)
 
 
 
-*Groupe PT47 — Dashboard BI Coffee Shop — ISMONTIC Tanger — PFE 2026*
+*Groupe PT47 — Dashboard  Coffee Shop — ISMONTIC Tanger — PFE 2026*
 
