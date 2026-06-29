@@ -122,8 +122,7 @@ async def upload_predict(
     _:    User       = Depends(get_current_user),
 ):
     model = get_model()
-    if model is None:
-        raise HTTPException(status_code=503, detail="Modèle ML non chargé — vérifiez model_cafe.pkl")
+    model_loaded = model is not None
 
     content = await file.read()
     try:
@@ -158,7 +157,10 @@ async def upload_predict(
 
     try:
         X = df[["year", "month", "day", "weekday", "hour_of_day", "coffee_encoded", "cash_encoded"]]
-        df["predicted_price"] = model.predict(X).round(2)
+        if model is not None:
+            df["predicted_price"] = model.predict(X).round(2)
+        else:
+            df["predicted_price"] = np.nan
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur modèle ML: {e}")
 
@@ -172,7 +174,7 @@ async def upload_predict(
     payment_cache = {}
     client_cache  = {}
 
-    for _, row in df.iterrows():
+    for idx, row in df.iterrows():
         try:
             # Client (card code ou "ANON-CASH")
             raw_card = row.get("card") if not pd.isna(row.get("card", float("nan"))) else None
@@ -201,6 +203,13 @@ async def upload_predict(
                 payment_cache[ptype] = payment.paymentId if payment else 1
             payment_id = payment_cache[ptype]
 
+            if not model_loaded:
+                predicted, confidence = fallback_predict(coffee_id, int(row["hour_of_day"]), db)
+                df.at[idx, "predicted_price"] = predicted
+            else:
+                predicted = float(row["predicted_price"])
+                confidence = 0.98
+
             sale = CoffeeSale(
                 saleDate     = row["date"].date(),
                 hour         = int(row["hour_of_day"]),
@@ -218,8 +227,8 @@ async def upload_predict(
 
             pred = MLPrediction(
                 forecastDate   = row["date"].date(),
-                predictedPrice = float(row["predicted_price"]),
-                confidence     = 0.98,
+                predictedPrice = float(predicted),
+                confidence     = confidence,
                 coffeeId       = coffee_id,
                 saleId         = sale.saleId,
             )

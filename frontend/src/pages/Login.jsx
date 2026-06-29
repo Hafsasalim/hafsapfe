@@ -95,7 +95,7 @@ export default function Login() {
 
           <button type="submit" disabled={loading}
             style={{ background:'var(--coffee)', border:'none', borderRadius:'var(--radius-sm)', padding:12, color:'#1a1410', fontSize:14, fontWeight:700, marginTop:4, opacity:loading?0.7:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8 }}>
-            {loading ? '⏳ Connexion...' : 'Se connecter ☕'}
+            {loading ? '⏳ Connexion...' : 'Se connecter '}
           </button>
         </form>
 
@@ -104,9 +104,7 @@ export default function Login() {
           admin@coffeeai.com / admin123<br/>
           manager@coffeeai.com / manager123
         </div>
-        <div style={{ marginTop:14, textAlign:'center', fontSize:10, color:'var(--text3)' }}>
-          PFE 2025
-        </div>
+        
       </div>
     </div>
   );
