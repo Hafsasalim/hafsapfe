@@ -7,14 +7,24 @@ export default function Login() {
   const [password, setPassword] = useState('');
   const [loading,  setLoading]  = useState(false);
   const [showPwd,  setShowPwd]  = useState(false);
+  const [error,    setError]    = useState('');
   const { login } = useAuth();
   const navigate  = useNavigate();
 
   const handleSubmit = async e => {
     e.preventDefault();
+    setError('');
     setLoading(true);
+    
     const ok = await login(email, password);
-    if (ok) navigate('/dashboard');
+    
+    if (ok) {
+      navigate('/dashboard');
+    } else {
+      // Keep error visible - don't clear it
+      setError('Identifiants incorrects. Veuillez réessayer.');
+    }
+    
     setLoading(false);
   };
 
@@ -37,10 +47,29 @@ export default function Login() {
         <h1 style={{ fontSize:22, fontWeight:700, marginBottom:6, fontFamily:"'Space Grotesk',sans-serif" }}>Connexion</h1>
         <p style={{ fontSize:13, color:'var(--text2)', marginBottom:24 }}>Accédez à votre tableau de bord BI</p>
 
+        {error && (
+          <div style={{
+            background:'rgba(231, 76, 60, 0.15)',
+            border:'2px solid #e74c3c',
+            borderRadius:'var(--radius-sm)',
+            padding:'12px 14px',
+            marginBottom:16,
+            fontSize:13,
+            color:'#c0392b',
+            fontWeight:'500',
+            display:'flex',
+            alignItems:'center',
+            gap:8
+          }}>
+            <span>❌</span>
+            <div>{error}</div>
+          </div>
+        )}
+
         <form onSubmit={handleSubmit} style={{ display:'flex', flexDirection:'column', gap:16 }}>
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             <label style={{ fontSize:12, color:'var(--text2)' }}>Adresse e-mail</label>
-            <input type="email" value={email} onChange={e=>setEmail(e.target.value)} required
+            <input type="email" value={email} onChange={e=>{setEmail(e.target.value); setError('')}} required
               style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'10px 14px', color:'var(--text)', fontSize:13, width:'100%' }}
               onFocus={e=>e.target.style.borderColor='var(--coffee)'}
               onBlur={e=>e.target.style.borderColor='var(--border)'}
@@ -51,7 +80,7 @@ export default function Login() {
           <div style={{ display:'flex', flexDirection:'column', gap:6 }}>
             <label style={{ fontSize:12, color:'var(--text2)' }}>Mot de passe</label>
             <div style={{ position:'relative' }}>
-              <input type={showPwd?'text':'password'} value={password} onChange={e=>setPassword(e.target.value)} required
+              <input type={showPwd?'text':'password'} value={password} onChange={e=>{setPassword(e.target.value); setError('')}} required
                 style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'10px 40px 10px 14px', color:'var(--text)', fontSize:13, width:'100%' }}
                 onFocus={e=>e.target.style.borderColor='var(--coffee)'}
                 onBlur={e=>e.target.style.borderColor='var(--border)'}
