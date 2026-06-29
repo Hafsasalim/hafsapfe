@@ -39,13 +39,13 @@ export default function Login() {
         <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:28 }}>
           <span style={{ fontSize:36 }}>☕</span>
           <div>
-            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, color:'var(--coffee)' }}>CoffeeBI</div>
+            <div style={{ fontFamily:"'Space Grotesk',sans-serif", fontSize:22, fontWeight:700, color:'var(--coffee)' }}>CoffeeAI</div>
             <div style={{ fontSize:11, color:'var(--text3)' }}>Dashboard Analytique — Coffee Shop</div>
           </div>
         </div>
 
         <h1 style={{ fontSize:22, fontWeight:700, marginBottom:6, fontFamily:"'Space Grotesk',sans-serif" }}>Connexion</h1>
-        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:24 }}>Accédez à votre tableau de bord BI</p>
+        <p style={{ fontSize:13, color:'var(--text2)', marginBottom:24 }}>Accédez à votre tableau de bord</p>
 
         {error && (
           <div style={{
@@ -73,7 +73,7 @@ export default function Login() {
               style={{ background:'var(--surface2)', border:'1px solid var(--border)', borderRadius:'var(--radius-sm)', padding:'10px 14px', color:'var(--text)', fontSize:13, width:'100%' }}
               onFocus={e=>e.target.style.borderColor='var(--coffee)'}
               onBlur={e=>e.target.style.borderColor='var(--border)'}
-              placeholder="email@coffeebi.com"
+              placeholder="email@coffeeai.com"
             />
           </div>
 
@@ -101,8 +101,8 @@ export default function Login() {
 
         <div style={{ marginTop:16, background:'var(--surface2)', borderRadius:'var(--radius-sm)', padding:'10px 14px', fontSize:11, color:'var(--text2)' }}>
           <strong>Comptes démo :</strong><br/>
-          admin@coffeebi.com / admin123<br/>
-          manager@coffeebi.com / manager123
+          admin@coffeeai.com / admin123<br/>
+          manager@coffeeai.com / manager123
         </div>
         <div style={{ marginTop:14, textAlign:'center', fontSize:10, color:'var(--text3)' }}>
           PFE 2025

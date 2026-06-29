@@ -37,13 +37,17 @@ def create_database_if_missing() -> None:
 
 def seed_data(db: Session) -> None:
     print("Clearing user data...")
+    # Disable foreign key checks to allow deletion
+    db.execute(text("SET FOREIGN_KEY_CHECKS=0"))
     db.query(User).delete()
+    # Re-enable foreign key checks
+    db.execute(text("SET FOREIGN_KEY_CHECKS=1"))
     db.commit()
 
     print("Seeding users...")
     users = [
-        User(name="Admin", email="admin@coffeebi.com", password=hash_password("admin123")),
-        User(name="Manager", email="manager@coffeebi.com", password=hash_password("manager123")),
+        User(name="Admin", email="admin@coffeeai.com", password=hash_password("admin123")),
+        User(name="Manager", email="manager@coffeeai.com", password=hash_password("manager123")),
     ]
     db.add_all(users)
     db.commit()
@@ -53,7 +57,7 @@ def seed_data(db: Session) -> None:
 
 def main() -> None:
     print(f"Using database '{DB_NAME}' on host '{DB_HOST}:{DB_PORT}'")
-    create_database_if_missing()
+    # Database must already exist - will not create it
     Base.metadata.create_all(bind=engine)
 
     with SessionLocal() as db:

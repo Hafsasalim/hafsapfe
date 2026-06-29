@@ -11,7 +11,7 @@ const NAV = [
   ]},
   { label:'Analytique', items:[
     { to:'/predictions', icon:'🤖', text:'Prédictions ML' },
-    { to:'/rapports',    icon:'📋', text:'Rapports BI'   },
+    { to:'/rapports',    icon:'📋', text:'Rapports'   },
   ]},
 ];
 
@@ -36,7 +36,7 @@ export default function Sidebar() {
       <div style={S.logo}>
         <span style={S.logoIcon}>☕</span>
         <div>
-          <div style={S.logoText}>CoffeeBI</div>
+          <div style={S.logoText}>CoffeeAI</div>
           <div style={S.logoSub}>Dashboard Analytique</div>
         </div>
       </div>

@@ -7,7 +7,7 @@ const TITLES = {
   '/produits':   'Catalogue Produits 🫘',
   '/clients':    'Clients 👥',
   '/predictions':'Prédictions ML 🤖',
-  '/rapports':   'Rapports BI 📋',
+  '/rapports':   'Rapports 📋',
 };
 
 export default function Topbar() {
