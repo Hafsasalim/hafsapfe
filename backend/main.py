@@ -4,10 +4,17 @@ Abdelhadi Sahba — Groupe PT47 — ISMONTIC Tanger 2025
 """
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from database import engine, Base
+from database import engine, Base, SessionLocal
 from routes import auth, dashboard, sales, predictions, clients, products, reports
+from auth import migrate_legacy_passwords
 
 Base.metadata.create_all(bind=engine)
+
+# Migrate any legacy plain-text passwords to bcrypt on startup
+with SessionLocal() as db:
+    migrated = migrate_legacy_passwords(db)
+    if migrated:
+        print(f"Migrated {migrated} legacy user password(s) to bcrypt hashes.")
 
 app = FastAPI(
     title="CoffeeBI API",

@@ -3,15 +3,6 @@
 ## Groupe PT47 — High tech — PFE 2026
 
 
-
----
-
-
-
-## Stack technique
-
-
-
 | Couche | Technologie |
 
 |--------|-------------|
@@ -156,13 +147,15 @@ py -3.11 -m venv venv
 
 venv\Scripts\activate
 
-pip install -r requirements.txt
+py -3.11 -m pip install -r requirements.txt
 
 uvicorn main:app --reload --port 8000
 
 ```
 
-
+::::::::
+For add new user run 
+py -3.11 add_user.py
 
 ✅ API disponible sur : http://localhost:8000  
 

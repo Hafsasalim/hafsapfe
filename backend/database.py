@@ -1,9 +1,13 @@
-from dotenv import load_dotenv
+try:
+    from dotenv import load_dotenv
+    load_dotenv()
+except ImportError:
+    # dotenv not installed, skip loading .env file
+    pass
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import os
-
-load_dotenv()
 
 DB_USER     = os.getenv("DB_USER",     "root")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "")
