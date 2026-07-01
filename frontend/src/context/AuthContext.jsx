@@ -30,7 +30,7 @@ export function AuthProvider({ children }) {
       toast.success(`Bienvenue, ${data.user.name} ☕`);
       return true;
     } catch (err) {
-      toast.error(err.response?.data?.detail || 'Identifiants incorrects');
+      // Don't show toast here - let the Login component handle error display
       return false;
     }
   };
